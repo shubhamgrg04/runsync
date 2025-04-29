@@ -1,0 +1,344 @@
+openapi: 3.0.3
+info:
+  title: RunSync Platform API
+  description: API for syncing running activities between Strava, Fitbit, and future integrations. Supports user login, activity management, app connections, and manual syncs.
+  version: "1.2.0"
+  contact:
+    name: Support Team
+    email: support@runsync.com
+
+servers:
+  - url: https://api.runsync.com
+    description: Production Server
+  - url: http://localhost:8000
+    description: Local Development Server
+
+paths:
+
+  ## ========== Authentication ==========
+  /auth/login/:
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: Login using email and password. Returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+
+  /auth/logout/:
+    post:
+      tags:
+        - Authentication
+      summary: User Logout
+      description: Logout the user and invalidate the session.
+      responses:
+        "204":
+          description: Successfully logged out
+
+  /auth/register/:
+    post:
+      tags:
+        - Authentication
+      summary: User Registration
+      description: Register a new user with email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "201":
+          description: User registered successfully
+
+
+  ## ========== User Profile ==========
+  /user/profile/:
+    get:
+      tags:
+        - User
+      summary: Get User Profile
+      description: Fetch logged-in user's profile details.
+      responses:
+        "200":
+          description: User profile details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  name:
+                    type: string
+
+  ## ========== Activities ==========
+  /activities/:
+    get:
+      tags:
+        - Activities
+      summary: Get Synced Activities
+      description: Retrieve a list of activities synced across connected apps.
+      parameters:
+        - name: provider
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Filter by provider (e.g., strava, fitbit)
+      responses:
+        "200":
+          description: List of activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    provider:
+                      type: string
+                    distance_km:
+                      type: number
+                      format: float
+                    duration_minutes:
+                      type: integer
+                    start_time:
+                      type: string
+                      format: date-time
+
+  /activities/sync/:
+    post:
+      tags:
+        - Activities
+      summary: Sync activities from a specific provider
+      description: Trigger manual activity sync for a given provider.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                provider:
+                  type: string
+                  enum: [strava, fitbit]
+      responses:
+        "202":
+          description: Sync started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Sync started successfully."
+
+  /activities/{activity_id}/:
+    get:
+      tags:
+        - Activities
+      summary: Get single Activity Detail
+      description: Fetch a specific activity by its ID.
+      parameters:
+        - name: activity_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Activity detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  provider:
+                    type: string
+                  distance_km:
+                    type: number
+                  duration_minutes:
+                    type: integer
+                  start_time:
+                    type: string
+                    format: date-time
+                  metadata:
+                    type: object
+
+  ## ========== Connected Apps ==========
+  /apps/connected/:
+    get:
+      tags:
+        - Connected Apps
+      summary: View Connected Apps
+      description: List all apps connected by the user with configuration details.
+      responses:
+        "200":
+          description: List of connected apps
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    provider:
+                      type: string
+                    connected_on:
+                      type: string
+                      format: date-time
+                    status:
+                      type: string
+                      example: active
+
+  /apps/connect/{provider}/:
+    get:
+      tags:
+        - Connected Apps
+      summary: Start OAuth Connection
+      description: Redirect user to external app's OAuth flow (like Strava/Fitbit login page).
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [strava, fitbit]
+      responses:
+        "302":
+          description: Redirect to external OAuth authorization URL
+
+  /apps/disconnect/{provider}/:
+    post:
+      tags:
+        - Connected Apps
+      summary: Disconnect App
+      description: Disconnect an app from the user's account.
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [strava, fitbit]
+      responses:
+        "204":
+          description: Successfully disconnected
+
+  ## ========== Manual Sync ==========
+  /sync/manual/:
+    post:
+      tags:
+        - Sync
+      summary: Manually Sync Activities Between Two Apps
+      description: Allows user to sync activities from one app to another manually.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from_provider:
+                  type: string
+                  enum: [strava, fitbit]
+                to_provider:
+                  type: string
+                  enum: [strava, fitbit]
+                since:
+                  type: string
+                  format: date
+                  description: Optional. Only sync activities since this date.
+      responses:
+        "202":
+          description: Manual sync job started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Manual sync job started."
+                  task_id:
+                    type: string
+
+  ## ========== Webhook Endpoints ==========
+  /webhooks/strava/:
+    post:
+      tags:
+        - Webhooks
+      summary: Receive webhook updates from Strava
+      description: Endpoint for Strava to POST updates like new activities.
+      responses:
+        "200":
+          description: Acknowledged
+
+  /webhooks/fitbit/:
+    post:
+      tags:
+        - Webhooks
+      summary: Receive webhook updates from Fitbit
+      description: Endpoint for Fitbit to POST updates like new activities.
+      responses:
+        "200":
+          description: Acknowledged
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Authentication
+    description: Login, Logout, Refresh Tokens
+  - name: User
+    description: User Profile Information
+  - name: Activities
+    description: Synced Activities Information
+  - name: Connected Apps
+    description: Manage user connections to external apps
+  - name: Sync
+    description: Manual syncing operations between apps
+  - name: Webhooks
+    description: Endpoints for receiving updates from external apps
