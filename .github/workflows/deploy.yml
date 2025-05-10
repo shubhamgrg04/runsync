@@ -30,7 +30,7 @@ jobs:
 
           # Check if runsync directory exists, create if not
           if [ ! -d "runsync" ]; then
-            git clone https://github.com/${{ github.repository }}.git runsync
+            git clone https://github.com/shubhamgrg04/runsync.git runsync
           else
             cd runsync
             git pull origin master
