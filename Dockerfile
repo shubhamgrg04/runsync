@@ -27,5 +27,8 @@ RUN python manage.py migrate
 # Expose port
 EXPOSE 8000
 
+# Create logs directory if it doesn't exist
+RUN mkdir -p logs
+
 # Start server
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"] 
