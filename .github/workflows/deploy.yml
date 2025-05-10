@@ -10,37 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v3
+      - name: Checkout Repo
+        uses: actions/checkout@v3
 
-    - name: Setup SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan -H ${{ secrets.GCE_HOST }} >> ~/.ssh/known_hosts
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.GCE_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Upload .env
-      run: |
-        echo "${{ secrets.ENV_FILE }}" | ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} "cat > ~/runsync/.env"
+      - name: Upload .env
+        run: |
+          echo "${{ secrets.ENV_FILE }}" | ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} "cat > ~/runsync/.env"
 
-    - name: Deploy to GCE
-      run: |
-        ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} << 'EOF'
-          # Check if runsync directory exists, create if not
-          if [ -d "runsync" ]; then
-            cd runsync
-            git pull origin master
-          else
-            git clone https://github.com/${{ github.repository }}.git runsync
-            cd runsync
-          fi
+      - name: Deploy to GCE
+        run: |
+          ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} << 'EOF'
+          git clone https://github.com/shubhamgrg04/runsync runsync
+          cd runsync
 
           # Ensure .env is present (copy from a safe location or create it here)
           if [ ! -f .env ]; then
             echo "Missing .env file! Please upload it to the server."
             exit 1
-          fi
+            fi
 
           # Check if Docker is installed, install if not
           if ! command -v docker &> /dev/null; then
@@ -68,4 +62,3 @@ jobs:
 
           # Run the new container
           sudo docker run -d --name runsync --env-file .env -p 8000:8000 runsync
-        EOF
