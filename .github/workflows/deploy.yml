@@ -20,10 +20,13 @@ jobs:
         chmod 600 ~/.ssh/id_ed25519
         ssh-keyscan -H ${{ secrets.GCE_HOST }} >> ~/.ssh/known_hosts
 
+    - name: Upload .env
+      run: |
+        echo "${{ secrets.ENV_FILE }}" | ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} "cat > ~/runsync/.env"
+
     - name: Deploy to GCE
       run: |
         ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} << 'EOF'
-        
           # Check if runsync directory exists, create if not
           if [ -d "runsync" ]; then
             cd runsync
@@ -31,6 +34,12 @@ jobs:
           else
             git clone https://github.com/${{ github.repository }}.git runsync
             cd runsync
+          fi
+
+          # Ensure .env is present (copy from a safe location or create it here)
+          if [ ! -f .env ]; then
+            echo "Missing .env file! Please upload it to the server."
+            exit 1
           fi
 
           # Check if Docker is installed, install if not
@@ -50,13 +59,13 @@ jobs:
             sudo systemctl enable docker || sudo service docker enable
           fi
 
-          # Build Docker image
+          # Build Docker image (ensure you are in the correct directory)
           sudo docker build -t runsync .
 
           # Stop and remove any existing container
           sudo docker stop runsync || true
           sudo docker rm runsync || true
-          
+
           # Run the new container
           sudo docker run -d --name runsync --env-file .env -p 8000:8000 runsync
         EOF
