@@ -4,3 +4,39 @@
 __pycache__/
 *.pyc
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+.env/
+.venv-colossus/
+
+# IDE
+.idea/
+.vscode/
+.cursor/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Coverage
+.coverage
+htmlcov/
+
