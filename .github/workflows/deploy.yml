@@ -20,14 +20,11 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.GCE_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Upload .env
-        run: |
-          echo "${{ secrets.ENV_FILE }}" | ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} "cat > ~/runsync/.env"
 
       - name: Deploy to GCE
         run: |
           ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} << 'EOF'
-          
+
           # Check if runsync directory exists, create if not
           if [ ! -d "runsync" ]; then
             git clone https://github.com/${{ github.repository }}.git runsync
@@ -35,6 +32,8 @@ jobs:
             cd runsync
             git pull origin master
           fi
+
+          echo "${{ secrets.ENV_FILE }}" | ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} "cat > ~/runsync/.env"
 
           # Ensure .env is present (copy from a safe location or create it here)
           if [ ! -f .env ]; then
