@@ -27,8 +27,14 @@ jobs:
       - name: Deploy to GCE
         run: |
           ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} << 'EOF'
-          git clone https://github.com/shubhamgrg04/runsync runsync
-          cd runsync
+          
+          # Check if runsync directory exists, create if not
+          if [ ! -d "runsync" ]; then
+            git clone https://github.com/${{ github.repository }}.git runsync
+          else
+            cd runsync
+            git pull origin master
+          fi
 
           # Ensure .env is present (copy from a safe location or create it here)
           if [ ! -f .env ]; then
