@@ -23,7 +23,12 @@ jobs:
     - name: Deploy to GCE
       run: |
         ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} << 'EOF'
-          cd /path/to/your/project
+          if [ -d "runsync" ]; then
+            cd runsync
+          else
+            mkdir runsync
+            cd runsync
+          fi
           git pull origin master
           source /path/to/venv/bin/activate
           pip install -r requirements.txt
