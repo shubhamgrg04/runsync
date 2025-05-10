@@ -51,12 +51,12 @@ jobs:
           fi
 
           # Build Docker image
-          docker build -t runsync .
+          sudo docker build -t runsync .
 
           # Stop and remove any existing container
-          docker stop runsync || true
-          docker rm runsync || true
+          sudo docker stop runsync || true
+          sudo docker rm runsync || true
           
           # Run the new container
-          docker run -d --name runsync --env-file .env -p 8000:8000 runsync
+          sudo docker run -d --name runsync --env-file .env -p 8000:8000 runsync
         EOF
