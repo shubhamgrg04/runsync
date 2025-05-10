@@ -25,6 +25,9 @@ jobs:
         run: |
           ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} << 'EOF'
 
+          # Add GitHub to known_hosts to avoid host verification errors
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
           # Check if runsync directory exists, create if not
           if [ ! -d "runsync" ]; then
             git clone https://github.com/${{ github.repository }}.git runsync
