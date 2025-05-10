@@ -25,14 +25,16 @@ jobs:
         ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} << 'EOF'
           if [ -d "runsync" ]; then
             cd runsync
+            git pull origin master
           else
-            mkdir runsync
+            git clone https://github.com/${{ github.repository }}.git runsync
             cd runsync
           fi
-          git pull origin master
-          source /path/to/venv/bin/activate
-          pip install -r requirements.txt
-          python manage.py migrate
-          python manage.py collectstatic --noinput
-          sudo systemctl restart gunicorn
+          # Build Docker image
+          docker build -t runsync .
+          # Stop and remove any existing container
+          docker stop runsync || true
+          docker rm runsync || true
+          # Run the new container
+          docker run -d --name runsync --env-file .env -p 8000:8000 runsync
         EOF
