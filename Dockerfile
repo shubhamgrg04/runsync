@@ -21,9 +21,6 @@ RUN pip install --upgrade pip && pip install -r requirements-dev.txt
 # Copy project
 COPY . .
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
-
 # Run migrations
 RUN python manage.py migrate
 
