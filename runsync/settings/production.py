@@ -41,15 +41,25 @@ LOGGING = {
     "disable_existing_loggers": False,
     "handlers": {
         "file": {
-            "level": "ERROR",
+            "level": "INFO",
             "class": "logging.FileHandler",
-            "filename": os.path.join(BASE_DIR, "logs/django.log"),
+            "filename": os.path.join(BASE_DIR, "logs/runsync_django.log"),
+        },
+        "migrate_file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, "logs/runsync_migration.log"),
         },
     },
     "loggers": {
+        "django.db.backends.schema": {
+            "handlers": ["migrate_file"],
+            "level": "INFO",
+            "propagate": True,
+        },
         "django": {
             "handlers": ["file"],
-            "level": "ERROR",
+            "level": "INFO",
             "propagate": True,
         },
     },

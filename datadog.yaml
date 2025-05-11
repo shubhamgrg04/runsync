@@ -8,6 +8,6 @@ logs:
   - type: file
     service: runsync-migrate
     source: runsync_production
-    path: /logs/*.log
+    path: /logs/runsync_migration.log
     tags: ["env:production"]
 
