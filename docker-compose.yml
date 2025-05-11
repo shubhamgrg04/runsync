@@ -34,7 +34,7 @@ services:
     image: datadog/agent:latest
     container_name: runsync-datadog-agent
     volumes:
-      - ./datadog.yaml:/etc/datadog/datadog.yaml
+      - ./datadog.yaml:/conf.d/logs.yaml
       - ./logs:/logs
       # - /var/run/docker.sock:/var/run/docker.sock
       # - /proc:/host/proc:ro
@@ -52,5 +52,6 @@ services:
       - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
       - DD_CONTAINER_EXCLUDE=name:runsync-datadog-agent
       - DD_SITE=us5.datadoghq.com
+      - DD_LOG_LEVEL=debug
     restart: always
 
