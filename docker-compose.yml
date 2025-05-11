@@ -17,16 +17,24 @@ services:
     volumes:
       - ./logs:/app/logs
       - ./db:/app/db
-#     depends_on:
-#       - redis
+    depends_on:
+      - redis
+      - migrate
+  migrate:
+    build: .
+    container_name: runsync-migrate
+    command: >
+      python manage.py migrate
+    env_file:
+      - .env
 
-#   redis:
-#     image: redis:7
-#     container_name: runsync-redis
-#     ports:
-#       - "6379:6379"
-#     volumes:
-#       - redis_data:/data
+  redis:
+    image: redis:7
+    container_name: runsync-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
-# volumes:
-#   redis_data:
+volumes:
+  redis_data:
