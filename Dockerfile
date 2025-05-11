@@ -28,7 +28,7 @@ RUN python manage.py migrate
 EXPOSE 8000
 
 # Create logs directory if it doesn't exist
-RUN mkdir -p logs
+# RUN mkdir -p logs
 
 # Start server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"] 
+CMD ["gunicorn", "runsync.asgi:application", "--bind", "0.0.0.0:8000", "--log-level", "debug", "--access-logfile", "logs/runsync-access.log", "--error-logfile", "logs/runsync-error.log"] 

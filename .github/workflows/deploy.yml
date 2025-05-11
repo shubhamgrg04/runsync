@@ -77,5 +77,11 @@ jobs:
           sudo docker stop runsync || true
           sudo docker rm runsync || true
 
-          # Run the new container
-          sudo docker run -d --name runsync --env-file .env -p 8000:8000 runsync
+          # check if logs directory exists, create if not
+          if [ ! -d "logs" ]; then
+            mkdir -p logs
+          fi
+
+          # Run the new container with gunicorn
+          sudo docker run -d --name runsync --env-file .env -p 8000:8000 -v $(pwd):. runsync
+
