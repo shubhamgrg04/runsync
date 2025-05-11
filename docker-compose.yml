@@ -19,7 +19,6 @@ services:
       - ./logs:/app/logs
       - ./db:/app/db
     depends_on:
-      - redis
       - migrate
   migrate:
     build: .
@@ -31,13 +30,8 @@ services:
     volumes:
       - ./db:/app/db
 
-  redis:
-    image: redis:7
-    container_name: runsync-redis
-    ports:
-      - "6379:6379"
+  dd-agent:
+    image: datadog/agent:latest
+    container_name: runsync-dd-agent
     volumes:
-      - redis_data:/data
-
-volumes:
-  redis_data:
+      - ./datadog.yaml:/etc/datadog/datadog.yaml

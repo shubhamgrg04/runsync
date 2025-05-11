@@ -1,0 +1,13 @@
+logs:
+  - type: file
+    service: runsync-webserver
+    source: runsync_production
+    path: /logs/*.log
+    tags: ["env:production"]
+
+  - type: file
+    service: runsync-migrate
+    source: runsync_production
+    path: /logs/*.log
+    tags: ["env:production"]
+
