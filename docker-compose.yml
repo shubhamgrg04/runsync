@@ -27,6 +27,8 @@ services:
       python manage.py migrate
     env_file:
       - .env
+    volumes:
+      - ./db:/app/db
 
   redis:
     image: redis:7
