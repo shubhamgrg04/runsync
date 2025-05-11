@@ -39,13 +39,11 @@ jobs:
             git pull origin master
           fi
 
-
-
           # Ensure .env is present (copy from a safe location or create it here)
           if [ ! -f .env ]; then
             echo "Missing .env file! Please upload it to the server."
             exit 1
-            fi
+          fi
 
           # Check if nginx is installed, install if not
           if ! command -v nginx &> /dev/null; then
@@ -70,18 +68,12 @@ jobs:
             sudo systemctl enable docker || sudo service docker enable
           fi
 
-          # Build Docker image (ensure you are in the correct directory)
-          sudo docker build -t runsync .
+          # Ensure logs and db directories exist for persistence
+          mkdir -p ./logs
+          mkdir -p ./db
 
-          # Stop and remove any existing container
-          sudo docker stop runsync || true
-          sudo docker rm runsync || true
+          # Start services with docker-compose
+          sudo docker compose -f docker-compose.yml up -d --build
 
-          # check if logs directory exists, create if not
-          if [ ! -d "logs" ]; then
-            mkdir -p logs
-          fi
-
-          # Run the new container with gunicorn
-          sudo docker run -d --name runsync --env-file .env -p 8000:8000 -v $(pwd):. runsync
+          EOF
 

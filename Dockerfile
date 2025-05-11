@@ -22,13 +22,13 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . .
 
 # Run migrations
-RUN python manage.py migrate
+# RUN python manage.py migrate
 
 # Expose port
-EXPOSE 8000
+# EXPOSE 8000
 
 # Create logs directory if it doesn't exist
 # RUN mkdir -p logs
 
 # Start server
-CMD ["gunicorn", "runsync.asgi:application", "--bind", "0.0.0.0:8000", "--log-level", "debug", "--access-logfile", "logs/runsync-access.log", "--error-logfile", "logs/runsync-error.log"] 
+# CMD ["gunicorn", "runsync.asgi:application", "--bind", "0.0.0.0:8000", "--log-level", "debug", "--access-logfile", "logs/runsync-access.log", "--error-logfile", "logs/runsync-error.log"] 

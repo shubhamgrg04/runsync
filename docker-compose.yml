@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  web:
+    build: .
+    container_name: runsync
+    command: >
+      gunicorn runsync.asgi:application
+      --bind 0.0.0.0:8000
+      --log-level debug
+      --access-logfile logs/runsync-access.log
+      --error-logfile logs/runsync-error.log
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./db:/app/db
+#     depends_on:
+#       - redis
+
+#   redis:
+#     image: redis:7
+#     container_name: runsync-redis
+#     ports:
+#       - "6379:6379"
+#     volumes:
+#       - redis_data:/data
+
+# volumes:
+#   redis_data:
