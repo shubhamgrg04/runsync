@@ -86,3 +86,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Custom user model
 AUTH_USER_MODEL = "users.User"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "users.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
+
+# JWT Settings
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
+JWT_ACCESS_TOKEN_LIFETIME = 60 * 60 * 24  # 24 hours in seconds
