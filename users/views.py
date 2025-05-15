@@ -1,4 +1,7 @@
+from datetime import datetime
+
 import jwt
+from django.conf import settings
 from django.contrib.auth import authenticate, logout
 from rest_framework import status
 from rest_framework.response import Response
@@ -11,6 +14,13 @@ class LoginView(APIView):
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
+
+        if not username or not password:
+            return Response(
+                {"message": "Username and password are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         user = authenticate(username=username, password=password)
 
         if user is None:
@@ -18,14 +28,34 @@ class LoginView(APIView):
                 {"message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
             )
 
-        # generate a jwt token
-        token = jwt.encode({"username": username}, "secret", algorithm="HS256")
+        if not user.is_active:
+            return Response(
+                {"message": "Account is disabled"}, status=status.HTTP_403_FORBIDDEN
+            )
 
-        # set the token in the response headers and cookies
-        response = Response({"token": token}, status=status.HTTP_200_OK)
-        response.set_cookie(
-            key="token", value=token, httponly=True, secure=True, samesite="strict"
+        # Generate JWT token with user ID and expiry
+        payload = {
+            "user_id": user.id,
+            "username": user.username,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=1),
+        }
+        token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
+
+        # Set token in both response and httponly cookie
+        response = Response(
+            {"token": token, "user": {"id": user.id, "username": user.username}},
+            status=status.HTTP_200_OK,
         )
+
+        response.set_cookie(
+            key="token",
+            value=token,
+            httponly=True,
+            secure=True,
+            samesite="strict",
+            max_age=86400,  # 1 day in seconds
+        )
+
         return response
 
 
