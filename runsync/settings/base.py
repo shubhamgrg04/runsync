@@ -17,7 +17,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_extensions",
-    "users.apps.UsersConfig",  # Add our users app
+    "users.apps.UsersConfig",
+    "integrations.apps.IntegrationsConfig",
 ]
 
 MIDDLEWARE = [
@@ -99,3 +100,16 @@ REST_FRAMEWORK = {
 # JWT Settings
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 JWT_ACCESS_TOKEN_LIFETIME = 60 * 60 * 24  # 24 hours in seconds
+
+
+INTEGRATION_CALLBACK_REDIRECT_URL_SUCCESS = os.environ.get(
+    "INTEGRATION_CALLBACK_REDIRECT_URL_SUCCESS"
+)
+INTEGRATION_CALLBACK_REDIRECT_URL_ERROR = os.environ.get(
+    "INTEGRATION_CALLBACK_REDIRECT_URL_ERROR"
+)
+
+
+# Fitbit
+FITBIT_CLIENT_ID = os.environ.get("FITBIT_CLIENT_ID")
+FITBIT_CLIENT_SECRET = os.environ.get("FITBIT_CLIENT_SECRET")

@@ -3,9 +3,15 @@
 import os
 import sys
 
+from dotenv import load_dotenv
+
 
 def main():
     """Run administrative tasks."""
+
+    if os.environ.get("ENV") != "prod":
+        load_dotenv()
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "runsync.settings.local")
     try:
         from django.core.management import execute_from_command_line
