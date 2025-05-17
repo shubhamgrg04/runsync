@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import logging
 import uuid
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -12,6 +13,8 @@ from integrations.app_integrations import BaseIntegration
 from integrations.constants import IntegrationName, UserIntegrationStatus
 from integrations.models import UserIntegration
 from users.models import User
+
+logger = logging.getLogger(__name__)
 
 
 class FitbitIntegration(BaseIntegration):
@@ -36,31 +39,50 @@ class FitbitIntegration(BaseIntegration):
         code = request.GET.get("code")
         if not code:
             raise ValueError("No code provided")
+
         state = request.GET.get("state")
         if not state:
             raise ValueError("No state provided")
+
         user_integration = (
             UserIntegration.objects.filter(
-                integration_name=self.INTEGRATION_NAME.value, state=state
+                integration_name=self.INTEGRATION_NAME.value,
+                state=state,
+                status=UserIntegrationStatus.PENDING.value,
             )
             .order_by("-created")
             .first()
         )
         if not user_integration:
             raise ValueError("No user integration found")
-        res = self.exchange_code_for_token(code, code_verifier=state)
-        access_token, refresh_token, expires_in = (
-            res.get("access_token"),
-            res.get("refresh_token"),
-            res.get("expires_in"),
-        )
-        user_integration.access_token = access_token
-        user_integration.refresh_token = refresh_token
-        user_integration.expires_at = timezone.now() + timedelta(seconds=expires_in)
-        user_integration.status = UserIntegrationStatus.COMPLETED.value
-        user_integration.save(
-            update_fields=["access_token", "refresh_token", "expires_at", "status"]
-        )
+
+        try:
+            res = self.exchange_code_for_token(code, code_verifier=state)
+            access_token, refresh_token, expires_in = (
+                res.pop("access_token"),
+                res.pop("refresh_token"),
+                res.pop("expires_in"),
+            )
+            user_integration.access_token = access_token
+            user_integration.refresh_token = refresh_token
+            user_integration.expires_at = timezone.now() + timedelta(seconds=expires_in)
+            user_integration.status = UserIntegrationStatus.COMPLETED.value
+            user_integration.metadata = res
+            user_integration.save(
+                update_fields=[
+                    "access_token",
+                    "refresh_token",
+                    "expires_at",
+                    "status",
+                    "metadata",
+                ]
+            )
+        except Exception as e:
+            logger.error(f"Error exchanging code for token: {e}")
+            user_integration.status = UserIntegrationStatus.FAILED.value
+            user_integration.metadata = {"error": str(e)}
+            user_integration.save(update_fields=["status", "metadata"])
+            raise e
 
     @classmethod
     def exchange_code_for_token(cls, code, *args, **kwargs):
@@ -97,7 +119,7 @@ class FitbitIntegration(BaseIntegration):
         )
         params = {
             "client_id": cls.CLIENT_ID,
-            "scope": "activity profile",
+            "scope": "activity profile heartrate location electrocardiogram nutrition oxygen_saturation temperature weight",
             "response_type": "code",
             "code_challenge": base64.urlsafe_b64encode(
                 hashlib.sha256(random_state.encode()).digest()
@@ -112,22 +134,61 @@ class FitbitIntegration(BaseIntegration):
     def fetch_activities(self, since=None):
         headers = {"Authorization": f"Bearer {self.get_access_token()}"}
         url = "https://api.fitbit.com/1/user/-/activities/list.json"
-        since = since or timezone.now() - timedelta(days=30)
+        since = since or timezone.now() - timedelta(days=7)
         params = {
-            "afterDate": since.strftime("%Y-%m-%d") if since else "2024-01-01",
+            "afterDate": since.strftime("%Y-%m-%d"),
             "sort": "desc",
             "offset": 0,
             "limit": 20,
         }
         res = requests.get(url, headers=headers, params=params)
         res.raise_for_status()
-        return res.json().get("activities", [])
+        return self.filter_activities(res.json().get("activities", []))
+
+    def filter_activities(self, activities):
+        return [
+            activity
+            for activity in activities
+            if isinstance(activity.get("distance"), float)
+            and activity.get("distance") > 0
+        ]
+
+    def get_activity_details(self, log_id):
+        headers = {"Authorization": f"Bearer {self.get_access_token()}"}
+        url = f"https://api.fitbit.com/1/user/-/activities/{log_id}.json"
+        res = requests.get(url, headers=headers)
+        res.raise_for_status()
+        return res.json()
+
+    def get_activity_file(self, log_id):
+        headers = {"Authorization": f"Bearer {self.get_access_token()}"}
+        user_id = self.user_integration.metadata.get("user_id")
+        url = f"https://api.fitbit.com/1/user/{user_id}/activities/{log_id}.tcx"
+        res = requests.get(url, headers=headers)
+        res.raise_for_status()
+        return res.text, res.headers.get("Content-Type")
+
+    def upload_activity(
+        self, activity_file, file_metadata=None, activity_metadata=None
+    ):
+        headers = {"Authorization": f"Bearer {self.get_access_token()}"}
+        url = "https://api.fitbit.com/1/user/-/activities"
+        files = {
+            "file": (
+                "activity.tcx",
+                activity_file.encode("utf-8")
+                if isinstance(activity_file, str)
+                else activity_file,
+                "application/xml",
+            )
+        }
+        data = {
+            "data_type": "tcx",
+        }
+        res = requests.post(url, headers=headers, files=files, data=data)
+        res.raise_for_status()
+        return res.json()
 
     def push_activity(self, user, activity_data):
         # Fitbit doesn't support pushing activities externally
         raise NotImplementedError("Pushing activities to Fitbit is not supported.")
-
-    def handle_webhook(self, data):
-        # Fitbit sends user_id, collectionType (e.g., activities), date
-        print("Webhook received from Fitbit:", data)
-        # you can enqueue a sync task here

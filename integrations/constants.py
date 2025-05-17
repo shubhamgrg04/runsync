@@ -3,6 +3,7 @@ from enum import Enum
 
 class IntegrationName(Enum):
     FITBIT = "fitbit"
+    STRAVA = "strava"
 
     @classmethod
     def choices(cls):

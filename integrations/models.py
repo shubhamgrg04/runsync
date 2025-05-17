@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
 from django_extensions.db.models import TimeStampedModel
@@ -18,10 +19,11 @@ class UserIntegration(TimeStampedModel):
         db_index=True,
     )
     state = models.CharField(max_length=255, null=True, blank=True, db_index=True)
-    access_token = models.CharField(max_length=255, null=True, blank=True)
-    refresh_token = models.CharField(max_length=255, null=True, blank=True)
+    access_token = models.CharField(max_length=2048, null=True, blank=True)
+    refresh_token = models.CharField(max_length=2048, null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    metadata = JSONField(default=dict)
 
     def __str__(self):
         return f"{self.user.username} - {self.integration_name}"
