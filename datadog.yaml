@@ -4,5 +4,8 @@ logs:
     source: runsync_production
     path: /logs/*.log
     tags: ["env:production"]
-
+    log_processing_rules:
+      - type: multi_line
+        name: no_multiline_needed
+        pattern: '^\{'
 

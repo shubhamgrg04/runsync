@@ -5,6 +5,10 @@ Base Django settings for runsync project.
 import os
 from pathlib import Path
 
+import structlog
+from structlog.processors import JSONRenderer
+from structlog.stdlib import LoggerFactory
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -48,6 +52,40 @@ TEMPLATES = [
         },
     },
 ]
+
+# Logging
+structlog.configure(
+    processors=[
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        JSONRenderer(),
+    ],
+    context_class=dict,
+    logger_factory=LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, "logs/runsync_django.log"),
+        }
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+}
 
 WSGI_APPLICATION = "runsync.wsgi.application"
 
