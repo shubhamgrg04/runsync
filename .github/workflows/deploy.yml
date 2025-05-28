@@ -39,7 +39,8 @@ jobs:
       - name: Deploy to VM
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-
+          cd ~/runsync
+          
           # Ensure .env is present (copy from a safe location or create it here)
           if [ ! -f .env ]; then
             echo "Missing .env file! Please upload it to the server."
