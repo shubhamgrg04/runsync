@@ -1,4 +1,4 @@
-name: Deploy runsync to GCE
+name: Deploy runsync to VM
 
 on:
   push:
@@ -18,15 +18,15 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.GCE_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Upload .env
         run: |
-          echo "${{ secrets.ENV_FILE }}" | ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} "cat > ~/runsync/.env"
+          echo "${{ secrets.ENV_FILE }}" | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cat > ~/runsync/.env"
 
-      - name: Deploy to GCE
+      - name: Deploy to VM
         run: |
-          ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_HOST }} << 'EOF'
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
 
           # Add GitHub to known_hosts to avoid host verification errors
           ssh-keyscan -H github.com >> ~/.ssh/known_hosts
