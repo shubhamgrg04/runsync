@@ -85,4 +85,26 @@ jobs:
             sudo docker compose -f docker-compose.yml up -d --build
           EOF
 
-          
+      - name: Add configuration to nginx
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            # Check if nginx configuration doesn't already exist
+            if [ ! -f /etc/nginx/sites-available/runsync ]; then
+              echo "Setting up nginx configuration..."
+              sudo apt-get update
+              sudo apt-get install -y certbot python3-certbot-nginx
+              sudo cp ~/runsync/nginx.conf /etc/nginx/sites-available/runsync
+              sudo ln -s /etc/nginx/sites-available/runsync /etc/nginx/sites-enabled/
+              sudo systemctl restart nginx
+              sudo certbot --nginx -d api.runsync.dev
+              sudo systemctl restart nginx
+              # Add crontab entry for certificate renewal if it doesn't exist
+              if ! (crontab -l 2>/dev/null | grep -q "certbot renew"); then
+                (crontab -l 2>/dev/null; echo "0 0 1 * * sudo certbot renew --quiet") | crontab -
+                echo "Added automatic certificate renewal to crontab"
+              fi
+            fi
+          EOF
+
+
+
