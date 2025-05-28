@@ -20,11 +20,9 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to VM
+      - name: Setup repo
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-
-          # Add GitHub to known_hosts to avoid host verification errors
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ~/runsync" << 'EOF'
           ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
           # Check if runsync directory exists, create if not
@@ -34,9 +32,13 @@ jobs:
             cd runsync
             git pull origin master
           fi
+          EOF
 
-          # Upload .env
           echo "${{ secrets.ENV_FILE }}" | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cat > ~/runsync/.env"
+
+      - name: Deploy to VM
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
 
           # Ensure .env is present (copy from a safe location or create it here)
           if [ ! -f .env ]; then
