@@ -96,6 +96,7 @@ jobs:
               sudo cp ~/runsync/nginx.conf /etc/nginx/sites-available/runsync
               sudo ln -s /etc/nginx/sites-available/runsync /etc/nginx/sites-enabled/
               sudo systemctl restart nginx
+              sudo certbot delete --cert-name api.runsync.dev
               sudo certbot --nginx -d api.runsync.dev --agree-tos --email shubhamgrg04@gmail.com
               sudo systemctl restart nginx
               # Add crontab entry for certificate renewal if it doesn't exist
