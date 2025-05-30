@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from integrations.utils import get_integration
+from integrations.services import get_integration
 
 logger = structlog.get_logger(__name__)
 

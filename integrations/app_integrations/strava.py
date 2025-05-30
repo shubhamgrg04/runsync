@@ -96,6 +96,22 @@ class StravaIntegration(BaseIntegration):
             raise e
 
     @classmethod
+    def exchange_refresh_token_for_token(cls, refresh_token):
+        try:
+            data = {
+                "client_id": cls.CLIENT_ID,
+                "client_secret": cls.CLIENT_SECRET,
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+            }
+            res = requests.post(cls.TOKEN_URL, params=data)
+            res.raise_for_status()
+            return res.json()
+        except Exception as e:
+            logger.error("error_exchanging_refresh_token_for_token", error=e)
+            raise e
+
+    @classmethod
     def get_authorization_url(cls, user: User):
         try:
             random_state = (

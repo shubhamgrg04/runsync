@@ -1,5 +1,5 @@
 from integrations.models import UserIntegration
-from integrations.utils import get_integration
+from integrations.services import get_integration
 
 
 class ActivitySyncer:

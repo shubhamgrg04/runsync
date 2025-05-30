@@ -16,11 +16,6 @@ urlpatterns = [
         views.IntegrationActivityView.as_view(),
         name="integration-activity",
     ),
-    path(
-        "sync",
-        views.IntegrationSyncView.as_view(),
-        name="integration-sync",
-    ),
     # callback urls
     path("callback/", include("integrations.app_integrations.urls")),
 ]
