@@ -22,16 +22,16 @@ jobs:
 
       - name: Setup repo
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ~/runsync" << 'EOF'
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
-          # Check if runsync directory exists, create if not
-          if [ ! -d "runsync" ]; then
-            git clone https://github.com/shubhamgrg04/runsync.git runsync
-          else
-            cd runsync
-            git pull origin master
-          fi
+            # Check if runsync directory exists, create if not
+            if [ ! -d "runsync" ]; then
+              git clone https://github.com/shubhamgrg04/runsync.git runsync
+            else
+              cd runsync
+              git pull origin master
+            fi
           EOF
 
           echo "${{ secrets.ENV_FILE }}" | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cat > ~/runsync/.env"
