@@ -43,7 +43,15 @@ class LoginView(APIView):
         }
         token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
         response = Response(
-            {"token": token, "user": {"id": user.id, "email": user.email}},
+            {
+                "token": token,
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                },
+            },
             status=status.HTTP_200_OK,
         )
         return response

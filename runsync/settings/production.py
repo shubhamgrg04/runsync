@@ -14,6 +14,11 @@ DEBUG = False
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
 
+CORS_ALLOWED_ORIGINS = [
+    "https://runsync.com",
+    "https://www.runsync.com",
+]
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
