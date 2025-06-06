@@ -7,6 +7,11 @@ urlpatterns = [
         "connected", views.ConnectedIntegrationsView.as_view(), name="integrations-list"
     ),
     path(
+        "apps",
+        views.AppsView.as_view(),
+        name="apps",
+    ),
+    path(
         "<str:integration_type>/connect",
         views.IntegrationOAuthView.as_view(),
         name="integration-oauth",

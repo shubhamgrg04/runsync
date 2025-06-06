@@ -2,8 +2,8 @@ from enum import Enum
 
 
 class IntegrationName(Enum):
-    FITBIT = "fitbit"
-    STRAVA = "strava"
+    Fitbit = "fitbit"
+    Strava = "strava"
 
     @classmethod
     def choices(cls):

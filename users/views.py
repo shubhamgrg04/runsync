@@ -36,15 +36,17 @@ class LoginView(APIView):
                 {"message": "Account is disabled"}, status=status.HTTP_403_FORBIDDEN
             )
 
+        expires_at = timezone.now() + timedelta(days=1)
         payload = {
             "user_id": user.id,
             "email": user.email,
-            "exp": timezone.now() + timedelta(days=1),
+            "exp": expires_at,
         }
         token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
         response = Response(
             {
                 "token": token,
+                "expires_at": expires_at,
                 "user": {
                     "id": user.id,
                     "email": user.email,

@@ -18,7 +18,7 @@ logger = structlog.get_logger(__name__)
 
 
 class FitbitIntegration(BaseIntegration):
-    INTEGRATION_NAME = IntegrationName.FITBIT
+    INTEGRATION_NAME = IntegrationName.Fitbit
     TOKEN_URL = "https://api.fitbit.com/oauth2/token"
     AUTHORIZE_URL = "https://www.fitbit.com/oauth2/authorize"
 

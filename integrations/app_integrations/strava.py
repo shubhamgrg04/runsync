@@ -18,7 +18,7 @@ logger = structlog.get_logger(__name__)
 
 
 class StravaIntegration(BaseIntegration):
-    INTEGRATION_NAME = IntegrationName.STRAVA
+    INTEGRATION_NAME = IntegrationName.Strava
     TOKEN_URL = "https://www.strava.com/oauth/token"
     AUTHORIZE_URL = "https://www.strava.com/oauth/authorize"
 
