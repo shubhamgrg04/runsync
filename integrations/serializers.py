@@ -11,6 +11,7 @@ class UserIntegrationListSerializer(serializers.ModelSerializer):
 
 class AppSerializer(serializers.Serializer):
     name = serializers.CharField()
+    type = serializers.CharField()
     connect_url = serializers.URLField()
     activities_url = serializers.URLField()
     status = serializers.CharField()

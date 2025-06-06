@@ -28,6 +28,7 @@ class AppsView(APIView):
         for app in all_apps:
             app_data = {
                 "name": app[1],
+                "type": app[0],
                 "connect_url": reverse(
                     "integration-oauth", kwargs={"integration_type": app[0]}
                 ),
